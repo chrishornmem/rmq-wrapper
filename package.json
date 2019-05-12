@@ -1,0 +1,28 @@
+{
+  "name": "rmq-wrapper",
+  "version": "0.0.1",
+  "description": "RMQ wrapper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/chrishornmem/rmq-wrapper.git"
+  },
+  "keywords": [
+    "RabbitMq",
+    "RMQ",
+    "ONEm"
+  ],
+  "author": "Chris Horn",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/chrishornmem/rmq-wrapper/issues"
+  },
+  "homepage": "https://github.com/chrishornmem/rmq-wrapper#readme",
+  "dependencies": {
+    "amqplib": "^0.5.3",
+    "events": "^3.0.0"
+  }
+}
