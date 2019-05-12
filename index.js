@@ -42,9 +42,13 @@ const start = async () => {
 const produce = async (queue, message, durable = false, persistent = false) => {
   const channel = await connection.createChannel()
 
-  await channel.assertQueue(queue)
-  await channel.sendToQueue(queue, Buffer.from(message), { persistent })
-  console.log('Message produced: ', queue, message)
+  try {
+    await channel.assertQueue(queue)
+    await channel.sendToQueue(queue, Buffer.from(message), { persistent })
+    console.log('Message produced: ', queue, message)
+  } catch (error) {
+    throw error
+  }
 
 }
  
@@ -76,21 +80,26 @@ const consume = async (queue, isNoAck = false, durable = false, prefetch = null)
 const publish = async (exchangeName, exchangeType, message) => {
   const channel = await connection.createChannel()
 
-  await channel.assertExchange(exchangeName, exchangeType, {durable: false})
-  await channel.publish(exchangeName, '', Buffer.from(message))
+  try {
 
-  console.log('Message published: ', exchangeName, message)
+    await channel.assertExchange(exchangeName, exchangeType, {durable: false})
+    await channel.publish(exchangeName, '', Buffer.from(message))
+    console.log('Message published: ', exchangeName, message)
+
+  } catch (error) {
+    throw error
+  }
+
 }
 
 const subscribe = async (exchangeName, exchangeType) => {
-  const channel = await connection.createChannel()
-
-  await channel.assertExchange(exchangeName, exchangeType, {durable: false})
-  const queue = await channel.assertQueue('', {exclusive: true})
-  channel.bindQueue(queue.queue, exchangeName, '')
   const consumeEmitter = new EventEmitter()
 
   try {
+    const channel = await connection.createChannel()
+    await channel.assertExchange(exchangeName, exchangeType, {durable: false})
+    const queue = await channel.assertQueue('', {exclusive: true})
+    channel.bindQueue(queue.queue, exchangeName, '')
     channel.consume(queue.queue, message => {
       if (message !== null) {
         consumeEmitter.emit('data', message.content.toString())
