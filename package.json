@@ -1,10 +1,11 @@
 {
   "name": "rmq-wrapper",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "RMQ wrapper",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "jsdoc -c jsdoc.conf.json && jsdoc2md --files *.js > README.md"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,13 @@
   },
   "homepage": "https://github.com/chrishornmem/rmq-wrapper#readme",
   "dependencies": {
+    "amqp-connection-manager": "^2.3.2",
     "amqplib": "^0.5.3",
     "events": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "jsdoc": "^3.6.2",
+    "jsdoc-to-markdown": "^5.0.0"
   }
 }
