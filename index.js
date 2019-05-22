@@ -94,7 +94,7 @@ const cancel = (queue) => {
         debug(consumerTag)
         return queues[queue].channel.cancel(consumerTag)
     } else {
-        return new Promise.resolve(false)
+        return Promise.resolve(false)
     }
 }
 
