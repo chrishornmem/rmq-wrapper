@@ -17,6 +17,21 @@ connection.on('disconnect', function (params) {
 
 let wrapper // wrapper object for amqp library calls
 let queues = {} // memory store to temporarily map a queue against a channel
+let publishChannel
+
+const publish = ({
+    connect: async (exchangeName, exchangeType) => {
+        try {
+            publishChannel = await connection.createChannel()
+            await publishChannel.assertExchange(exchangeName, exchangeType, { durable: false })
+            return Promise.resolve(true)
+        } catch (error) {
+            debug(error)
+            return Promise.reject(error)
+        }
+    }
+})
+
 /**
  * This method connects to a queue and calls the provided callback consumeFunction when a message is received on the queue
  *
@@ -48,10 +63,10 @@ const consume = ({
             }
         })
         return wrapper.waitForConnect()
-    }, 
+    },
 
     /**
-     * This method should be called to acknolwedge a received message otherwise the message will be re-queued
+     * This method should be called to acknowledge a received message otherwise the message will be re-queued
      *
      * @param {object} data the object from the original received message that should be acked
      * @returns {boolean} true or false indicating success or failure
@@ -63,7 +78,7 @@ const consume = ({
 
 /**
  * This produces a message on RMQ, assumes that the connect() method was previously called
- * @param {string} queue name of the queue to listen on
+ * @param {string} queue name of the queue
  * @param {string} message stringified text to be put on the queue
  * @param {boolean} [persistent="true"] if true the message is stored peristently on the queue
  * @returns {Promise} Resolved when the message was produced on the queue
@@ -75,11 +90,41 @@ const produce = async (queue, message, persistent = true) => {
         return true
     } catch (error) {
         debug("Message was rejected:", error.stack)
-        wrapper.close()
-        connection.close()
+        if (wrapper) {
+            wrapper.close()
+        }
+        if (connection) {
+            connection.close()
+        }
         return false
     }
 }
+
+/**
+ * This publishes a message on RMQ, assumes that the connect() method was previously called
+ * @param {string} exchangeName name of the exchange to listen on
+ * @param {string} routingKey name of the routingKey
+ * @param {string} message stringified text to be put on the queue
+ * @param {boolean} [persistent="true"] if true the message is stored peristently on the queue
+ * @returns {Promise} Resolved when the message was produced on the queue
+ * @throws {exception}
+ */
+const publishMessage = async (exchangeName, routingKey, message, persistent = true) => {
+    try {
+        await publishChannel.publish(exchangeName, routingKey, Buffer.from(message), { persistent })
+        return true
+    } catch (error) {
+        debug("Message was rejected:", error.stack)
+        if (publishChannel) {
+            publishChannel.close()
+        }
+        if (connection) {
+            connection.close()
+        }
+        return false
+    }
+}
+
 
 /**
  * This tells RMQ to stop announcing new messages, so the callback consumeFunction is no longer called.  The queue should be re-connected to restart message delivery.
@@ -106,5 +151,7 @@ const cancel = (queue) => {
 module.exports = {
     consume,
     produce,
+    publish,
+    publishMessage,
     cancel
 }
