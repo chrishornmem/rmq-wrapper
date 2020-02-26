@@ -1,75 +1,91 @@
-<a name="module_rmq-wrapper"></a>
+## Functions
 
-## rmq-wrapper
-Utility functions for connecting, producing and consuming messages on RMQ
+<dl>
+<dt><a href="#connect">connect([host])</a></dt>
+<dd></dd>
+<dt><a href="#Exchange">Exchange(name, [type], [options])</a></dt>
+<dd></dd>
+</dl>
 
+<a name="connect"></a>
 
-* [rmq-wrapper](#module_rmq-wrapper)
-    * [~consume](#module_rmq-wrapper..consume) ⇒ <code>Promise</code>
-        * [.ack(data)](#module_rmq-wrapper..consume.ack) ⇒ <code>boolean</code>
-    * [~produce(queue, message, [persistent])](#module_rmq-wrapper..produce) ⇒ <code>Promise</code>
-    * [~cancel(queue)](#module_rmq-wrapper..cancel) ⇒ <code>Promise</code>
-
-<a name="module_rmq-wrapper..consume"></a>
-
-### rmq-wrapper~consume ⇒ <code>Promise</code>
-This method connects to a queue and calls the provided callback consumeFunction when a message is received on the queue
-
-**Kind**: inner constant of [<code>rmq-wrapper</code>](#module_rmq-wrapper)  
-**Returns**: <code>Promise</code> - Resolved when the connection completes  
-**Throws**:
-
-- <code>exception</code> 
-
+## connect([host])
+**Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| queue | <code>string</code> | name of the queue to listen on |
-| consumeFunction | <code>string</code> | function to call when a message is received on the queue |
+| [host] | <code>string</code> | default is process.env.RMQ_HOST || 'amqp://rabbitmq:5672' |
 
-<a name="module_rmq-wrapper..consume.ack"></a>
+<a name="Exchange"></a>
 
-#### consume.ack(data) ⇒ <code>boolean</code>
-This method should be called to acknolwedge a received message otherwise the message will be re-queued
-
-**Kind**: static method of [<code>consume</code>](#module_rmq-wrapper..consume)  
-**Returns**: <code>boolean</code> - true or false indicating success or failure  
+## Exchange(name, [type], [options])
+**Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>object</code> | the object from the original received message that should be acked |
-
-<a name="module_rmq-wrapper..produce"></a>
-
-### rmq-wrapper~produce(queue, message, [persistent]) ⇒ <code>Promise</code>
-This produces a message on RMQ, assumes that the connect() method was previously called
-
-**Kind**: inner method of [<code>rmq-wrapper</code>](#module_rmq-wrapper)  
-**Returns**: <code>Promise</code> - Resolved when the message was produced on the queue  
-**Throws**:
-
-- <code>exception</code> 
+| name | <code>string</code> | Name of the exchange |
+| [type] | <code>string</code> | 'direct', 'fanout' etc, default is 'direct' |
+| [options] | <code>object</code> | amqp channel.assertExchange options object |
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| queue | <code>string</code> |  | name of the queue to listen on |
-| message | <code>string</code> |  | stringified text to be put on the queue |
-| [persistent] | <code>boolean</code> | <code>&quot;true&quot;</code> | if true the message is stored peristently on the queue |
+* [Exchange(name, [type], [options])](#Exchange)
+    * [.subscribe(queue, consumeHandler, [routingKey], [prefetch], [messageTtl])](#Exchange+subscribe)
+    * [.ack(message)](#Exchange+ack)
+    * [.publish(routingKey, message, [options])](#Exchange+publish)
+    * [.sendRPCMessage(queue, message, [timeout])](#Exchange+sendRPCMessage)
+    * [.replyToRPC(message, reply)](#Exchange+replyToRPC)
 
-<a name="module_rmq-wrapper..cancel"></a>
+<a name="Exchange+subscribe"></a>
 
-### rmq-wrapper~cancel(queue) ⇒ <code>Promise</code>
-This tells RMQ to stop announcing new messages, so the callback consumeFunction is no longer called.  The queue should be re-connected to restart message delivery.
-
-**Kind**: inner method of [<code>rmq-wrapper</code>](#module_rmq-wrapper)  
-**Returns**: <code>Promise</code> - Resolved when the queue was cancelled  
-**Throws**:
-
-- <code>exception</code> 
-
+### exchange.subscribe(queue, consumeHandler, [routingKey], [prefetch], [messageTtl])
+**Kind**: instance method of [<code>Exchange</code>](#Exchange)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| queue | <code>string</code> | name of the queue to listen on |
+| queue | <code>string</code> | name of queue |
+| consumeHandler | <code>function</code> | handler function to call when message arrives on queue |
+| [routingKey] | <code>string</code> | optional routing key, defaults to queue name |
+| [prefetch] | <code>number</code> | optional number of messages to prefetch, default is 1 |
+| [messageTtl] | <code>number</code> | optional time to live for messages on the queue, default is process.env.RMQ_MESSAGE_TTL || 10000 |
+
+<a name="Exchange+ack"></a>
+
+### exchange.ack(message)
+**Kind**: instance method of [<code>Exchange</code>](#Exchange)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>object</code> | message to ack |
+
+<a name="Exchange+publish"></a>
+
+### exchange.publish(routingKey, message, [options])
+**Kind**: instance method of [<code>Exchange</code>](#Exchange)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| routingKey | <code>string</code> | optional routing key, defaults to queue name |
+| message | <code>object</code> | message to send (JSON object) |
+| [options] | <code>object</code> | amqplib options object for publish method |
+
+<a name="Exchange+sendRPCMessage"></a>
+
+### exchange.sendRPCMessage(queue, message, [timeout])
+**Kind**: instance method of [<code>Exchange</code>](#Exchange)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| queue | <code>string</code> | name of queue |
+| message | <code>object</code> | message to send (JSON object) |
+| [timeout] | <code>number</code> | time to wait for response in ms, default is process.env.RMQ_RPC_TIMEOUT || 10000 |
+
+<a name="Exchange+replyToRPC"></a>
+
+### exchange.replyToRPC(message, reply)
+**Kind**: instance method of [<code>Exchange</code>](#Exchange)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| message | <code>object</code> | the original message to reply to |
+| reply | <code>object</code> | JSON content of the reply messsage |
 
