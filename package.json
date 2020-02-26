@@ -1,6 +1,6 @@
 {
   "name": "rmq-wrapper",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "RMQ wrapper",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "ONEm"
   ],
   "author": "Chris Horn",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/chrishornmem/rmq-wrapper/issues"
   },
@@ -25,7 +25,8 @@
   "dependencies": {
     "amqp-connection-manager": "^2.3.2",
     "amqplib": "^0.5.3",
-    "events": "^3.0.0"
+    "debug-level": "^0.3.0",
+    "uuidv4": "^6.0.2"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
